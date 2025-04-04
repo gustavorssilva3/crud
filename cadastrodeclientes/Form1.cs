@@ -76,7 +76,7 @@ namespace cadastrodeclientes
                 //Cria a conexão com o banco de dados
                 Conexao = new MySqlConnection(data_source);
                 Conexao.Open();
-                //Teste de abertura
+                // Teste de abertura
                 // MessageBox.Show("Conexão aberta com sucesso");
 
                 //Comando SQL para inserir um novo cliente no banco de dados
@@ -126,7 +126,7 @@ namespace cadastrodeclientes
                 if(Conexao != null && Conexao.State == ConnectionState.Open)
                 {
                     Conexao.Close();
-                    //Texte de Fechamento
+                    // Teste de Fechamento
                     // MessageBox.Show("Conexão fechada com sucesso");
                 }
             }
