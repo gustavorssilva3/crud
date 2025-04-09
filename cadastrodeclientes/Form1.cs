@@ -20,8 +20,98 @@ namespace cadastrodeclientes
         public frmCadastrodeClientes()
         {
             InitializeComponent();
+
+            //Configuração inicial do listview para exibição dos dados dos clientes
+            lstCliente.View = View.Details;            //Define a visualizaão como "Detalhes
+            lstCliente.LabelEdit = true;               // Permite editar os titulos das colunas
+            lstCliente.AllowColumnReorder = true;      // Permite reordenar as colunas
+            lstCliente.FullRowSelect = true;           // Seleciona linhas inteiras ao clicar
+            lstCliente.GridLines = true;               // Exibe linhas de grade no listview
+
+            //Definando as colunas do listview
+            lstCliente.Columns.Add("Codígo", 100, HorizontalAlignment.Left);
+            lstCliente.Columns.Add("Nome Completo", 200, HorizontalAlignment.Left);
+            lstCliente.Columns.Add("Nome Social", 200, HorizontalAlignment.Left);
+            lstCliente.Columns.Add("E-mail", 200, HorizontalAlignment.Left);
+            lstCliente.Columns.Add("CPF", 200, HorizontalAlignment.Left);
+
+            //Carrega os dados dos clientes na interface
+            carregar_clientes();
         }
 
+        private void carregar_clientes_com_query(string query)
+        {
+            try
+            {
+                //Cria conexão com banco de dados
+                Conexao = new MySqlConnection(data_source);
+                Conexao.Open();
+
+                //Executa o a consulta SQL fornecida
+                MySqlCommand cmd = new MySqlCommand(query, Conexao);
+
+                //Se a consulta contém parametro @q, adiciona o valor da caixa de pesquisa
+                if (query.Contains("@q"))
+                {
+                    cmd.Parameters.AddWithValue("@q", "%" + txtBuscar.Text + "%");
+                }
+
+                //Exucuta o comando e obtém os resultado
+                MySqlDataReader reader = cmd.ExecuteReader();
+
+                //Limpa os itens existentes no Listview antes de adicionar novos
+                lstCliente.Items.Clear();
+
+                // Preenche o Listview com os dados do cliente
+                while(reader.Read())
+                {
+                    //Cria uma linha para cada cliente com os dados retornados da consulta
+                    string[] row =
+                    {
+                        Convert.ToString(reader.GetInt32(0)),
+                        reader.GetString(1),
+                        reader.GetString(2),
+                        reader.GetString(3),
+                        reader.GetString(4)
+                    };
+
+                    //Adiciona a linha ao Listview
+                    lstCliente.Items.Add(new ListViewItem(row));
+                }
+            }
+
+            catch(MySqlException ex)
+            {
+                //Trata erros realacionados ao MySQL
+                MessageBox.Show("Erro " + ex.Message + " ocorreu: " + ex.Message,
+                    "Erro",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Ocorreu " + ex.Message,
+                    "Erro",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (Conexao != null && Conexao.State == ConnectionState.Open)
+                {
+                    Conexao.Close();
+                }
+            }
+        }
+
+        //Metodo para carregar todos os clientes no Listview (usando uma consulta sem parametros
+        private void carregar_clientes()
+        {
+            string query = "SELECT * FROM dadosdecliente ORDER BY codigo DESC";
+            carregar_clientes_com_query(query);
+        }
+
+        //Regex
         private bool isValidEmail(string email)
         {
             string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
@@ -101,6 +191,18 @@ namespace cadastrodeclientes
 
                 //Menssagem de sucesso
                 MessageBox.Show("Contato inserido com sucesso: ", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                //Limpa os campos no após o sucesso
+                txtNomeCompleto.Text = String.Empty;
+                txtNomeSocial.Text = " ";
+                txtEmail.Text = " ";
+                txtCPF.Text = " ";
+
+                //Recarregar os clientes na Listview
+                carregar_clientes();
+
+                //Muda para a aba de pesquisa
+                tabControl1.SelectedIndex = 1;
             }
 
             catch(MySqlException ex)
@@ -130,6 +232,15 @@ namespace cadastrodeclientes
                     // MessageBox.Show("Conexão fechada com sucesso");
                 }
             }
+
+            // Restaura o cursor para o padrão
+            Cursor = Cursors.Default;
+        }
+
+        private void btnPesquisar_Click(object sender, EventArgs e)
+        {
+            string query = "SELECT * FROM dadosdecliente WHERE nomecompleto LIKE @q OR nomesocial LIKE @q ORDER BY codigo DESC";
+            carregar_clientes_com_query(query);
         }
     }
 }
