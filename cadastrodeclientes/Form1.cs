@@ -17,6 +17,9 @@ namespace cadastrodeclientes
         //Conexão com o banco de dados MySQL
         MySqlConnection Conexao;
         string data_source = "datasource=localhost; username=root; password=; database=db_cadastro";
+
+        private int? codigo_cliente = null;
+
         public frmCadastrodeClientes()
         {
             InitializeComponent();
@@ -177,20 +180,55 @@ namespace cadastrodeclientes
 
                 cmd.Prepare();
 
-                cmd.CommandText = "INSERT INTO dadosdecliente(nomecompleto, nomesocial, email, cpf) " +
+                if (codigo_cliente == null)
+                {
+                    // Insert
+                    cmd.CommandText = "INSERT INTO dadosdecliente(nomecompleto, nomesocial, email, cpf) " +
                     "VALUES (@nomecompleto, @nomesocial, @email, @cpf)";
 
-                //Adiciona parâmetros com os dados do formulário
-                cmd.Parameters.AddWithValue("@nomecompleto", txtNomeCompleto.Text.Trim());
-                cmd.Parameters.AddWithValue("@nomesocial", txtNomeSocial.Text.Trim());
-                cmd.Parameters.AddWithValue("@email", email);
-                cmd.Parameters.AddWithValue("@cpf", cpf);
+                    //Adiciona parâmetros com os dados do formulário
+                    cmd.Parameters.AddWithValue("@nomecompleto", txtNomeCompleto.Text.Trim());
+                    cmd.Parameters.AddWithValue("@nomesocial", txtNomeSocial.Text.Trim());
+                    cmd.Parameters.AddWithValue("@email", email);
+                    cmd.Parameters.AddWithValue("@cpf", cpf);
 
-                // Executa o comando de inserção no bando de dados
-                cmd.ExecuteNonQuery();
+                    // Executa o comando de inserção no bando de dados
+                    cmd.ExecuteNonQuery();
 
-                //Menssagem de sucesso
-                MessageBox.Show("Contato inserido com sucesso: ", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //Menssagem de sucesso
+                    MessageBox.Show("Contato inserido com sucesso: ",
+                        "Sucesso",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+                else
+                {
+                    // UPDATE
+                    cmd.CommandText = $"UPDATE `dadosdecliente` SET " +
+                    $"nomecompleto = @nomecompleto, " +
+                    $"nomesocial = @nomesocial, " +
+                    $"email = @email, " +
+                    $"cpf = @cpf " +
+                    $"WHERE codigo = @codigo";
+
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@nomecompleto", txtNomeCompleto.Text.Trim());
+                    cmd.Parameters.AddWithValue("@nomesocial", txtNomeSocial.Text.Trim());
+                    cmd.Parameters.AddWithValue("@email", email);
+                    cmd.Parameters.AddWithValue("@cpf", cpf);
+                    cmd.Parameters.AddWithValue("@codigo", codigo_cliente);
+
+                    //Executa o comando de alteração no banco
+                    cmd.ExecuteNonQuery();
+
+                    //Menssagem de sucesso para dados atualizados
+                    MessageBox.Show($"Os dados com o código {codigo_cliente} foram alterados com Sucesso!",
+                        "Sucesso",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+
+                codigo_cliente = null;
 
                 //Limpa os campos no após o sucesso
                 txtNomeCompleto.Text = String.Empty;
@@ -241,6 +279,42 @@ namespace cadastrodeclientes
         {
             string query = "SELECT * FROM dadosdecliente WHERE nomecompleto LIKE @q OR nomesocial LIKE @q ORDER BY codigo DESC";
             carregar_clientes_com_query(query);
+        }
+
+        private void lstCliente_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+        {
+            ListView.SelectedListViewItemCollection clientedaselecao = lstCliente.SelectedItems;
+
+            foreach(ListViewItem item in clientedaselecao)
+            {
+                codigo_cliente = Convert.ToInt32(item.SubItems[0].Text);
+
+                //Exibe uma messagebox com o codigo do cliente
+                MessageBox.Show("Código do cliente: " + codigo_cliente.ToString(),
+                    "Código Selecionado",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                txtNomeCompleto.Text = item.SubItems[1].Text;
+                txtNomeSocial.Text = item.SubItems[2].Text;
+                txtEmail.Text = item.SubItems[3].Text;
+                txtCPF.Text = item.SubItems[4].Text;
+            }
+
+            //Muda para a aba de dados do cliente
+            tabControl1.SelectedIndex = 0;
+        }
+
+        private void btnNovoCliente_Click(object sender, EventArgs e)
+        {
+            codigo_cliente = null;
+
+            txtNomeCompleto.Text = String.Empty;
+            txtNomeSocial.Text = " ";
+            txtEmail.Text = " ";
+            txtCPF.Text = " ";
+
+            txtNomeCompleto.Focus();
         }
     }
 }
