@@ -316,5 +316,77 @@ namespace cadastrodeclientes
 
             txtNomeCompleto.Focus();
         }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            excluir_cliente();
+        }
+
+        private void btnExcluirCliente_Click(object sender, EventArgs e)
+        {
+            excluir_cliente();
+        }
+
+        private void excluir_cliente()
+        {
+            try
+            {
+                DialogResult opcaoDigitada = MessageBox.Show("Tem certeza que deseja excluir o registro de código: " + codigo_cliente,
+                    "Tem certeza?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (opcaoDigitada == DialogResult.Yes)
+                {
+                    Conexao = new MySqlConnection(data_source);
+
+                    Conexao.Open();
+
+                    MySqlCommand cmd = new MySqlCommand();
+
+                    cmd.Connection = Conexao;
+
+                    cmd.Prepare();
+
+                    cmd.CommandText = "DELETE FROM dadosdecliente WHERE codigo = @codigo";
+
+                    cmd.Parameters.AddWithValue("@codigo", codigo_cliente);
+
+                    cmd.ExecuteNonQuery();
+
+                    MessageBox.Show("Os dados do cliente foram EXCLUÍDOS!",
+                        "Sucesso",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+
+                    carregar_clientes();
+                }
+            }
+            catch (MySqlException ex)
+            {
+                //Trata erros relacionados ao SQL
+                MessageBox.Show("Erro " + ex.Number + " ocorreu " + ex.Message,
+                    "Erro",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+
+            catch (Exception ex)
+            {
+                // Trata outros tipos de erro
+                MessageBox.Show("Ocorreu: " + ex.Message,
+                    "Erro",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                //Garante que a conexão com banco de dados será fechada mesmo se ocorrer erro
+                if (Conexao != null && Conexao.State == ConnectionState.Open)
+                {
+                    Conexao.Close();
+                    // Teste de Fechamento
+                    // MessageBox.Show("Conexão fechada com sucesso");
+                }
+            }
+        }
     }
 }
