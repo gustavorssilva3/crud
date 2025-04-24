@@ -283,7 +283,10 @@ namespace cadastrodeclientes
 
         private void lstCliente_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
         {
+
             ListView.SelectedListViewItemCollection clientedaselecao = lstCliente.SelectedItems;
+
+            btnExcluirCliente.Visible = true;
 
             foreach(ListViewItem item in clientedaselecao)
             {
@@ -307,14 +310,7 @@ namespace cadastrodeclientes
 
         private void btnNovoCliente_Click(object sender, EventArgs e)
         {
-            codigo_cliente = null;
-
-            txtNomeCompleto.Text = String.Empty;
-            txtNomeSocial.Text = " ";
-            txtEmail.Text = " ";
-            txtCPF.Text = " ";
-
-            txtNomeCompleto.Focus();
+            zerar_cliente();
         }
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
@@ -325,6 +321,20 @@ namespace cadastrodeclientes
         private void btnExcluirCliente_Click(object sender, EventArgs e)
         {
             excluir_cliente();
+        }
+
+        private void zerar_cliente()
+        {
+            codigo_cliente = null;
+
+            txtNomeCompleto.Text = String.Empty;
+            txtNomeSocial.Text = " ";
+            txtEmail.Text = " ";
+            txtCPF.Text = " ";
+
+            txtNomeCompleto.Focus();
+
+            btnExcluirCliente.Visible = false;
         }
 
         private void excluir_cliente()
@@ -358,6 +368,10 @@ namespace cadastrodeclientes
                         MessageBoxIcon.Information);
 
                     carregar_clientes();
+
+                    zerar_cliente();
+
+                    btnExcluirCliente.Visible = true;
                 }
             }
             catch (MySqlException ex)
